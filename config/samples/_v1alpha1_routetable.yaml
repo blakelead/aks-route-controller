@@ -1,0 +1,6 @@
+apiVersion: blakelead.io/v1alpha1
+kind: RouteTable
+metadata:
+  name: routetable-sample
+spec:
+  # TODO(user): Add fields here
