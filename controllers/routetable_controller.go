@@ -35,31 +35,31 @@ type RouteTableReconciler struct {
 	Scheme *runtime.Scheme
 }
 
+//+kubebuilder:rbac:groups=core,resources=nodes,verbs=get;list;watch
 //+kubebuilder:rbac:groups=blakelead.io,resources=routetables,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=blakelead.io,resources=routetables/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=blakelead.io,resources=routetables/finalizers,verbs=update
 
-// Reconcile is part of the main kubernetes reconciliation loop which aims to
-// move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
-// the RouteTable object against the actual cluster state, and then
-// perform operations to make the cluster state reflect the state specified by
-// the user.
-//
-// For more details, check Reconcile and its Result here:
-// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.10.0/pkg/reconcile
+// Reconcile watches for Node events and updates Route Table accordingly
 func (r *RouteTableReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := logger.FromContext(ctx)
 
-	node := &corev1.Node{}
-
-	err := r.Get(ctx, req.NamespacedName, node)
+	rt := &blakeleadiov1alpha1.RouteTable{}
+	err := r.Get(ctx, req.NamespacedName, rt)
 	if err != nil {
-		log.Error(err, "Failed to get Node")
+		log.Error(err, "failed to get RouteTable CR")
 		return ctrl.Result{}, err
 	}
 
-	log.Info("Get Node", "Node.Name", node.Name, "node.Status.Addresses", node.Status.Addresses, "Node.Spec.PodCIDR", node.Spec.PodCIDR)
+	nodes := &corev1.NodeList{}
+	err = r.List(ctx, nodes)
+	if err != nil {
+		log.Error(err, "failed to get Node list")
+		return ctrl.Result{}, err
+	}
+
+	log.Info("get Route Table CR", "route.table", rt)
+	log.Info("get Nodes", "node.list", nodes)
 
 	return ctrl.Result{}, nil
 }
@@ -68,6 +68,5 @@ func (r *RouteTableReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 func (r *RouteTableReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&blakeleadiov1alpha1.RouteTable{}).
-		Owns(&corev1.Node{}).
 		Complete(r)
 }

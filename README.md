@@ -1,6 +1,6 @@
 # AKS Route Controller
 
-**Early stage of development**
+**DISCLAIMER: This project is in early stage of development and not yet usable**
 
 Kubernetes controller that manages an Azure Route Table by adding/deleting routes when Nodes are created/deleted.
 
